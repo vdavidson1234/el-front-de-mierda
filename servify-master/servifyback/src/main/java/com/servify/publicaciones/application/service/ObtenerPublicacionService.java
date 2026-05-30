@@ -1,0 +1,60 @@
+package com.servify.publicaciones.application.service;
+
+import com.servify.publicaciones.application.dto.CategoriaServicioResult;
+import com.servify.publicaciones.application.dto.PublicacionServicioResult;
+import com.servify.publicaciones.application.port.in.ObtenerPublicacionUseCase;
+import com.servify.publicaciones.application.port.out.PublicacionServicioRepositoryPort;
+import com.servify.publicaciones.domain.model.PublicacionServicio;
+
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Servicio de aplicacion que obtiene el detalle de una publicacion.
+ */
+public class ObtenerPublicacionService implements ObtenerPublicacionUseCase {
+
+    private final PublicacionServicioRepositoryPort publicacionServicioRepositoryPort;
+
+    public ObtenerPublicacionService(PublicacionServicioRepositoryPort publicacionServicioRepositoryPort) {
+        this.publicacionServicioRepositoryPort = publicacionServicioRepositoryPort;
+    }
+
+    // Delega en el repositorio y mapea el resultado si existe
+    @Override
+    public Optional<PublicacionServicioResult> obtenerPorId(UUID publicacionServicioId) {
+        if (publicacionServicioId == null) {
+            throw new IllegalArgumentException("El publicacionServicioId no puede ser nulo.");
+        }
+        return publicacionServicioRepositoryPort.buscarPorId(publicacionServicioId)
+                .map(this::construirResultado);
+    }
+
+    // Mapea la entidad de dominio al DTO de salida
+    protected PublicacionServicioResult construirResultado(PublicacionServicio publicacionServicio) {
+        CategoriaServicioResult categoriaResult = CategoriaServicioResult.builder()
+                .id(publicacionServicio.getCategoriaServicio().getId())
+                .nombre(publicacionServicio.getCategoriaServicio().getNombre())
+                .descripcion(publicacionServicio.getCategoriaServicio().getDescripcion())
+                .estado(publicacionServicio.getCategoriaServicio().getEstado())
+                .fechaCreacion(publicacionServicio.getCategoriaServicio().getFechaCreacion())
+                .fechaUltimaModificacion(publicacionServicio.getCategoriaServicio().getFechaUltimaModificacion())
+                .build();
+
+        return PublicacionServicioResult.builder()
+                .id(publicacionServicio.getId())
+                .usuarioId(publicacionServicio.getUsuarioId())
+                .categoriaServicio(categoriaResult)
+                .titulo(publicacionServicio.getTitulo())
+                .descripcion(publicacionServicio.getDescripcion())
+                .modalidadServicio(publicacionServicio.getModalidadServicio())
+                .ubicacion(publicacionServicio.getUbicacion())
+                .disponibilidadesHorarias(publicacionServicio.getDisponibilidadesHorarias())
+                .precioBase(publicacionServicio.getPrecioBase())
+                .estado(publicacionServicio.getEstado())
+                .puedeParticiparEnDistribucion(publicacionServicio.puedeParticiparEnDistribucion())
+                .fechaCreacion(publicacionServicio.getFechaCreacion())
+                .fechaUltimaModificacion(publicacionServicio.getFechaUltimaModificacion())
+                .build();
+    }
+}

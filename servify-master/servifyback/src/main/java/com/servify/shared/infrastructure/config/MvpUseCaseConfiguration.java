@@ -1,0 +1,528 @@
+package com.servify.shared.infrastructure.config;
+
+import com.servify.administracion.application.port.in.ActualizarConfiguracionGeneralUseCase;
+import com.servify.administracion.application.port.in.AplicarMedidaAdministrativaUsuarioUseCase;
+import com.servify.administracion.application.port.in.ModerarPublicacionUseCase;
+import com.servify.administracion.application.port.in.ObtenerConfiguracionGeneralUseCase;
+import com.servify.administracion.application.port.in.ObtenerMedidasAdministrativasDeUsuarioUseCase;
+import com.servify.administracion.application.port.out.ConfiguracionGeneralRepositoryPort;
+import com.servify.administracion.application.port.out.MedidaAdministrativaUsuarioRepositoryPort;
+import com.servify.administracion.application.port.out.PublicacionModerablePort;
+import com.servify.administracion.application.port.out.UsuarioAdministrablePort;
+import com.servify.administracion.application.service.ActualizarConfiguracionGeneralService;
+import com.servify.administracion.application.service.AplicarMedidaAdministrativaUsuarioService;
+import com.servify.administracion.application.service.ModerarPublicacionService;
+import com.servify.administracion.application.service.ObtenerConfiguracionGeneralService;
+import com.servify.administracion.application.service.ObtenerMedidasAdministrativasDeUsuarioService;
+import com.servify.autenticacion.application.port.in.CerrarSesionUseCase;
+import com.servify.autenticacion.application.port.in.IniciarSesionUseCase;
+import com.servify.autenticacion.application.port.in.RegistrarCredencialesUseCase;
+import com.servify.autenticacion.application.port.in.RenovarTokenUseCase;
+import com.servify.autenticacion.application.port.out.CredencialAccesoRepositoryPort;
+import com.servify.autenticacion.application.port.out.PasswordHasherPort;
+import com.servify.autenticacion.application.port.out.RefreshTokenRepositoryPort;
+import com.servify.autenticacion.application.port.out.TokenProviderPort;
+import com.servify.autenticacion.application.port.out.UsuarioAutenticablePort;
+import com.servify.autenticacion.application.service.CerrarSesionService;
+import com.servify.autenticacion.application.service.IniciarSesionService;
+import com.servify.autenticacion.application.service.RegistrarCredencialesService;
+import com.servify.autenticacion.application.service.RenovarTokenService;
+import com.servify.publicaciones.application.port.in.ActualizarCategoriaServicioUseCase;
+import com.servify.publicaciones.application.port.in.ActualizarPublicacionUseCase;
+import com.servify.publicaciones.application.port.in.BuscarPublicacionesCompatiblesUseCase;
+import com.servify.publicaciones.application.port.in.CambiarEstadoCategoriaServicioUseCase;
+import com.servify.publicaciones.application.port.in.CambiarEstadoPublicacionUseCase;
+import com.servify.publicaciones.application.port.in.CrearCategoriaServicioUseCase;
+import com.servify.publicaciones.application.port.in.CrearPublicacionUseCase;
+import com.servify.publicaciones.application.port.in.ListarCategoriasActivasUseCase;
+import com.servify.publicaciones.application.port.in.ListarPublicacionesDeUsuarioUseCase;
+import com.servify.publicaciones.application.port.in.ObtenerPublicacionUseCase;
+import com.servify.publicaciones.application.port.out.CategoriaServicioRepositoryPort;
+import com.servify.publicaciones.application.port.out.PublicacionServicioRepositoryPort;
+import com.servify.publicaciones.application.port.out.UsuarioPublicadorPort;
+import com.servify.publicaciones.application.service.ActualizarCategoriaServicioService;
+import com.servify.publicaciones.application.service.ActualizarPublicacionService;
+import com.servify.publicaciones.application.service.BuscarPublicacionesCompatiblesService;
+import com.servify.publicaciones.application.service.CambiarEstadoCategoriaServicioService;
+import com.servify.publicaciones.application.service.CambiarEstadoPublicacionService;
+import com.servify.publicaciones.application.service.CrearCategoriaServicioService;
+import com.servify.publicaciones.application.service.CrearPublicacionService;
+import com.servify.publicaciones.application.service.ListarCategoriasActivasService;
+import com.servify.publicaciones.application.service.ListarPublicacionesDeUsuarioService;
+import com.servify.publicaciones.application.service.ObtenerPublicacionService;
+import com.servify.publicaciones.domain.service.PoliticaCompatibilidadPublicacion;
+import com.servify.publicaciones.domain.service.ValidadorDisponibilidadHoraria;
+import com.servify.solicitudes.application.port.in.CalificarServicioUseCase;
+import com.servify.solicitudes.application.port.in.CancelarSolicitudServicioUseCase;
+import com.servify.solicitudes.application.port.in.ConfirmarAsignacionSolicitudUseCase;
+import com.servify.solicitudes.application.port.in.ConfirmarFinalizacionServicioUseCase;
+import com.servify.solicitudes.application.port.in.CrearSolicitudServicioUseCase;
+import com.servify.solicitudes.application.port.in.EmitirContraofertaUseCase;
+import com.servify.solicitudes.application.port.in.ListarSolicitudesDelSolicitanteUseCase;
+import com.servify.solicitudes.application.port.in.ListarSolicitudesRecibidasDetalladasUseCase;
+import com.servify.solicitudes.application.port.in.ListarSolicitudesRecibidasUseCase;
+import com.servify.solicitudes.application.port.in.ObtenerEstadoAsignacionSolicitudUseCase;
+import com.servify.solicitudes.application.port.in.ObtenerSolicitudServicioUseCase;
+import com.servify.solicitudes.application.port.in.ResolverContraofertaUseCase;
+import com.servify.solicitudes.application.port.in.ResponderDistribucionSolicitudUseCase;
+import com.servify.solicitudes.application.port.out.AsignacionServicioRepositoryPort;
+import com.servify.solicitudes.application.port.out.CalificacionRepositoryPort;
+import com.servify.solicitudes.application.port.out.ConfiguracionDistribucionPort;
+import com.servify.solicitudes.application.port.out.ConfirmacionFinalizacionRepositoryPort;
+import com.servify.solicitudes.application.port.out.ContraofertaRepositoryPort;
+import com.servify.solicitudes.application.port.out.DistribucionSolicitudRepositoryPort;
+import com.servify.solicitudes.application.port.out.PublicacionesCompatiblesPort;
+import com.servify.solicitudes.application.port.out.SolicitudServicioRepositoryPort;
+import com.servify.solicitudes.application.service.CalificarServicioService;
+import com.servify.solicitudes.application.service.CancelarSolicitudServicioService;
+import com.servify.solicitudes.application.service.ConfirmarAsignacionSolicitudService;
+import com.servify.solicitudes.application.service.ConfirmarFinalizacionServicioService;
+import com.servify.solicitudes.application.service.CrearSolicitudServicioService;
+import com.servify.solicitudes.application.service.EmitirContraofertaService;
+import com.servify.solicitudes.application.service.ListarSolicitudesDelSolicitanteService;
+import com.servify.solicitudes.application.service.ListarSolicitudesRecibidasDetalladasService;
+import com.servify.solicitudes.application.service.ListarSolicitudesRecibidasService;
+import com.servify.solicitudes.application.service.ObtenerEstadoAsignacionSolicitudService;
+import com.servify.solicitudes.application.service.ObtenerSolicitudServicioService;
+import com.servify.solicitudes.application.service.ResolverContraofertaService;
+import com.servify.solicitudes.application.service.ResponderDistribucionSolicitudService;
+import com.servify.solicitudes.domain.service.MotorDistribucionSolicitudes;
+import com.servify.solicitudes.domain.service.PoliticaAsignacionUnica;
+import com.servify.solicitudes.domain.service.PoliticaCalificacion;
+import com.servify.solicitudes.domain.service.PoliticaFinalizacionMutua;
+import com.servify.usuarios.application.port.in.ActualizarPerfilUsuarioUseCase;
+import com.servify.usuarios.application.port.in.CambiarEstadoUsuarioUseCase;
+import com.servify.usuarios.application.port.in.CrearUsuarioUseCase;
+import com.servify.usuarios.application.port.in.ObtenerConfiguracionCuentaUseCase;
+import com.servify.usuarios.application.port.in.ObtenerPerfilUsuarioUseCase;
+import com.servify.usuarios.application.port.out.PerfilUsuarioRepositoryPort;
+import com.servify.usuarios.application.port.out.UsuarioRepositoryPort;
+import com.servify.usuarios.application.service.ActualizarPerfilUsuarioService;
+import com.servify.usuarios.application.service.CambiarEstadoUsuarioService;
+import com.servify.usuarios.application.service.CrearUsuarioService;
+import com.servify.usuarios.application.service.ObtenerConfiguracionCuentaService;
+import com.servify.usuarios.application.service.ObtenerPerfilUsuarioService;
+import com.servify.usuarios.domain.service.PoliticaPerfilCompleto;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class MvpUseCaseConfiguration {
+
+    @Bean
+    PoliticaPerfilCompleto politicaPerfilCompleto() {
+        return new PoliticaPerfilCompleto();
+    }
+
+    @Bean
+    ValidadorDisponibilidadHoraria validadorDisponibilidadHoraria() {
+        return new ValidadorDisponibilidadHoraria();
+    }
+
+    @Bean
+    PoliticaCompatibilidadPublicacion politicaCompatibilidadPublicacion() {
+        return new PoliticaCompatibilidadPublicacion();
+    }
+
+    @Bean
+    MotorDistribucionSolicitudes motorDistribucionSolicitudes() {
+        return new MotorDistribucionSolicitudes();
+    }
+
+    @Bean
+    PoliticaAsignacionUnica politicaAsignacionUnica() {
+        return new PoliticaAsignacionUnica();
+    }
+
+    @Bean
+    PoliticaFinalizacionMutua politicaFinalizacionMutua() {
+        return new PoliticaFinalizacionMutua();
+    }
+
+    @Bean
+    PoliticaCalificacion politicaCalificacion() {
+        return new PoliticaCalificacion();
+    }
+
+    @Bean
+    CrearUsuarioUseCase crearUsuarioUseCase(UsuarioRepositoryPort usuarioRepositoryPort) {
+        return new CrearUsuarioService(usuarioRepositoryPort);
+    }
+
+    @Bean
+    ActualizarPerfilUsuarioUseCase actualizarPerfilUsuarioUseCase(
+            UsuarioRepositoryPort usuarioRepositoryPort,
+            PerfilUsuarioRepositoryPort perfilUsuarioRepositoryPort,
+            PoliticaPerfilCompleto politicaPerfilCompleto
+    ) {
+        return new ActualizarPerfilUsuarioService(
+                usuarioRepositoryPort,
+                perfilUsuarioRepositoryPort,
+                politicaPerfilCompleto
+        );
+    }
+
+    @Bean
+    ObtenerPerfilUsuarioUseCase obtenerPerfilUsuarioUseCase(PerfilUsuarioRepositoryPort perfilUsuarioRepositoryPort) {
+        return new ObtenerPerfilUsuarioService(perfilUsuarioRepositoryPort);
+    }
+
+    @Bean
+    ObtenerConfiguracionCuentaUseCase obtenerConfiguracionCuentaUseCase(
+            UsuarioRepositoryPort usuarioRepositoryPort,
+            PerfilUsuarioRepositoryPort perfilUsuarioRepositoryPort
+    ) {
+        return new ObtenerConfiguracionCuentaService(usuarioRepositoryPort, perfilUsuarioRepositoryPort);
+    }
+
+    @Bean
+    CambiarEstadoUsuarioUseCase cambiarEstadoUsuarioUseCase(UsuarioRepositoryPort usuarioRepositoryPort) {
+        return new CambiarEstadoUsuarioService(usuarioRepositoryPort);
+    }
+
+    @Bean
+    RegistrarCredencialesUseCase registrarCredencialesUseCase(
+            CredencialAccesoRepositoryPort credencialAccesoRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            UsuarioAutenticablePort usuarioAutenticablePort
+    ) {
+        return new RegistrarCredencialesService(
+                credencialAccesoRepositoryPort,
+                passwordHasherPort,
+                usuarioAutenticablePort
+        );
+    }
+
+    @Bean
+    IniciarSesionUseCase iniciarSesionUseCase(
+            CredencialAccesoRepositoryPort credencialAccesoRepositoryPort,
+            PasswordHasherPort passwordHasherPort,
+            TokenProviderPort tokenProviderPort,
+            RefreshTokenRepositoryPort refreshTokenRepositoryPort,
+            UsuarioAutenticablePort usuarioAutenticablePort
+    ) {
+        return new IniciarSesionService(
+                credencialAccesoRepositoryPort,
+                passwordHasherPort,
+                tokenProviderPort,
+                refreshTokenRepositoryPort,
+                usuarioAutenticablePort
+        );
+    }
+
+    @Bean
+    RenovarTokenUseCase renovarTokenUseCase(
+            RefreshTokenRepositoryPort refreshTokenRepositoryPort,
+            CredencialAccesoRepositoryPort credencialAccesoRepositoryPort,
+            TokenProviderPort tokenProviderPort,
+            UsuarioAutenticablePort usuarioAutenticablePort
+    ) {
+        return new RenovarTokenService(
+                refreshTokenRepositoryPort,
+                credencialAccesoRepositoryPort,
+                tokenProviderPort,
+                usuarioAutenticablePort
+        );
+    }
+
+    @Bean
+    CerrarSesionUseCase cerrarSesionUseCase(
+            RefreshTokenRepositoryPort refreshTokenRepositoryPort,
+            TokenProviderPort tokenProviderPort
+    ) {
+        return new CerrarSesionService(refreshTokenRepositoryPort, tokenProviderPort);
+    }
+
+    @Bean
+    CrearCategoriaServicioUseCase crearCategoriaServicioUseCase(
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort
+    ) {
+        return new CrearCategoriaServicioService(categoriaServicioRepositoryPort);
+    }
+
+    @Bean
+    CambiarEstadoCategoriaServicioUseCase cambiarEstadoCategoriaServicioUseCase(
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort
+    ) {
+        return new CambiarEstadoCategoriaServicioService(categoriaServicioRepositoryPort);
+    }
+
+    @Bean
+    ActualizarCategoriaServicioUseCase actualizarCategoriaServicioUseCase(
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort
+    ) {
+        return new ActualizarCategoriaServicioService(categoriaServicioRepositoryPort);
+    }
+
+    @Bean
+    ListarCategoriasActivasUseCase listarCategoriasActivasUseCase(
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort
+    ) {
+        return new ListarCategoriasActivasService(categoriaServicioRepositoryPort);
+    }
+
+    @Bean
+    CrearPublicacionUseCase crearPublicacionUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort,
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort,
+            UsuarioPublicadorPort usuarioPublicadorPort,
+            ValidadorDisponibilidadHoraria validadorDisponibilidadHoraria
+    ) {
+        return new CrearPublicacionService(
+                publicacionServicioRepositoryPort,
+                categoriaServicioRepositoryPort,
+                usuarioPublicadorPort,
+                validadorDisponibilidadHoraria
+        );
+    }
+
+    @Bean
+    CambiarEstadoPublicacionUseCase cambiarEstadoPublicacionUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort
+    ) {
+        return new CambiarEstadoPublicacionService(publicacionServicioRepositoryPort);
+    }
+
+    @Bean
+    ActualizarPublicacionUseCase actualizarPublicacionUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort,
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort,
+            ValidadorDisponibilidadHoraria validadorDisponibilidadHoraria
+    ) {
+        return new ActualizarPublicacionService(
+                publicacionServicioRepositoryPort,
+                categoriaServicioRepositoryPort,
+                validadorDisponibilidadHoraria
+        );
+    }
+
+    @Bean
+    ObtenerPublicacionUseCase obtenerPublicacionUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort
+    ) {
+        return new ObtenerPublicacionService(publicacionServicioRepositoryPort);
+    }
+
+    @Bean
+    ListarPublicacionesDeUsuarioUseCase listarPublicacionesDeUsuarioUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort
+    ) {
+        return new ListarPublicacionesDeUsuarioService(publicacionServicioRepositoryPort);
+    }
+
+    @Bean
+    BuscarPublicacionesCompatiblesUseCase buscarPublicacionesCompatiblesUseCase(
+            PublicacionServicioRepositoryPort publicacionServicioRepositoryPort,
+            CategoriaServicioRepositoryPort categoriaServicioRepositoryPort,
+            PoliticaCompatibilidadPublicacion politicaCompatibilidadPublicacion
+    ) {
+        return new BuscarPublicacionesCompatiblesService(
+                publicacionServicioRepositoryPort,
+                categoriaServicioRepositoryPort,
+                politicaCompatibilidadPublicacion
+        );
+    }
+
+    @Bean
+    CrearSolicitudServicioUseCase crearSolicitudServicioUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort,
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            PublicacionesCompatiblesPort publicacionesCompatiblesPort,
+            ConfiguracionDistribucionPort configuracionDistribucionPort,
+            MotorDistribucionSolicitudes motorDistribucionSolicitudes
+    ) {
+        return new CrearSolicitudServicioService(
+                solicitudServicioRepositoryPort,
+                distribucionSolicitudRepositoryPort,
+                publicacionesCompatiblesPort,
+                configuracionDistribucionPort,
+                motorDistribucionSolicitudes
+        );
+    }
+
+    @Bean
+    ObtenerSolicitudServicioUseCase obtenerSolicitudServicioUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ObtenerSolicitudServicioService(solicitudServicioRepositoryPort);
+    }
+
+    @Bean
+    ListarSolicitudesDelSolicitanteUseCase listarSolicitudesDelSolicitanteUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ListarSolicitudesDelSolicitanteService(solicitudServicioRepositoryPort);
+    }
+
+    @Bean
+    ListarSolicitudesRecibidasUseCase listarSolicitudesRecibidasUseCase(
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ListarSolicitudesRecibidasService(
+                distribucionSolicitudRepositoryPort,
+                solicitudServicioRepositoryPort
+        );
+    }
+
+    @Bean
+    ListarSolicitudesRecibidasDetalladasUseCase listarSolicitudesRecibidasDetalladasUseCase(
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ListarSolicitudesRecibidasDetalladasService(
+                distribucionSolicitudRepositoryPort,
+                solicitudServicioRepositoryPort
+        );
+    }
+
+    @Bean
+    ResponderDistribucionSolicitudUseCase responderDistribucionSolicitudUseCase(
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ResponderDistribucionSolicitudService(
+                distribucionSolicitudRepositoryPort,
+                solicitudServicioRepositoryPort
+        );
+    }
+
+    @Bean
+    EmitirContraofertaUseCase emitirContraofertaUseCase(
+            ContraofertaRepositoryPort contraofertaRepositoryPort,
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new EmitirContraofertaService(
+                contraofertaRepositoryPort,
+                distribucionSolicitudRepositoryPort,
+                solicitudServicioRepositoryPort
+        );
+    }
+
+    @Bean
+    ResolverContraofertaUseCase resolverContraofertaUseCase(
+            ContraofertaRepositoryPort contraofertaRepositoryPort,
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new ResolverContraofertaService(
+                contraofertaRepositoryPort,
+                distribucionSolicitudRepositoryPort,
+                solicitudServicioRepositoryPort
+        );
+    }
+
+    @Bean
+    ConfirmarAsignacionSolicitudUseCase confirmarAsignacionSolicitudUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort,
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            AsignacionServicioRepositoryPort asignacionServicioRepositoryPort,
+            PoliticaAsignacionUnica politicaAsignacionUnica
+    ) {
+        return new ConfirmarAsignacionSolicitudService(
+                solicitudServicioRepositoryPort,
+                distribucionSolicitudRepositoryPort,
+                asignacionServicioRepositoryPort,
+                politicaAsignacionUnica
+        );
+    }
+
+    @Bean
+    ConfirmarFinalizacionServicioUseCase confirmarFinalizacionServicioUseCase(
+            ConfirmacionFinalizacionRepositoryPort confirmacionFinalizacionRepositoryPort,
+            AsignacionServicioRepositoryPort asignacionServicioRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort,
+            PoliticaFinalizacionMutua politicaFinalizacionMutua
+    ) {
+        return new ConfirmarFinalizacionServicioService(
+                confirmacionFinalizacionRepositoryPort,
+                asignacionServicioRepositoryPort,
+                solicitudServicioRepositoryPort,
+                politicaFinalizacionMutua
+        );
+    }
+
+    @Bean
+    CalificarServicioUseCase calificarServicioUseCase(
+            CalificacionRepositoryPort calificacionRepositoryPort,
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort,
+            AsignacionServicioRepositoryPort asignacionServicioRepositoryPort,
+            PoliticaCalificacion politicaCalificacion
+    ) {
+        return new CalificarServicioService(
+                calificacionRepositoryPort,
+                solicitudServicioRepositoryPort,
+                asignacionServicioRepositoryPort,
+                politicaCalificacion
+        );
+    }
+
+    @Bean
+    CancelarSolicitudServicioUseCase cancelarSolicitudServicioUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort
+    ) {
+        return new CancelarSolicitudServicioService(solicitudServicioRepositoryPort);
+    }
+
+    @Bean
+    ObtenerEstadoAsignacionSolicitudUseCase obtenerEstadoAsignacionSolicitudUseCase(
+            SolicitudServicioRepositoryPort solicitudServicioRepositoryPort,
+            DistribucionSolicitudRepositoryPort distribucionSolicitudRepositoryPort,
+            AsignacionServicioRepositoryPort asignacionServicioRepositoryPort,
+            ConfirmacionFinalizacionRepositoryPort confirmacionFinalizacionRepositoryPort,
+            ContraofertaRepositoryPort contraofertaRepositoryPort
+    ) {
+        return new ObtenerEstadoAsignacionSolicitudService(
+                solicitudServicioRepositoryPort,
+                distribucionSolicitudRepositoryPort,
+                asignacionServicioRepositoryPort,
+                confirmacionFinalizacionRepositoryPort,
+                contraofertaRepositoryPort
+        );
+    }
+
+    @Bean
+    ModerarPublicacionUseCase moderarPublicacionUseCase(
+            PublicacionModerablePort publicacionModerablePort,
+            UsuarioAdministrablePort usuarioAdministrablePort
+    ) {
+        return new ModerarPublicacionService(publicacionModerablePort, usuarioAdministrablePort);
+    }
+
+    @Bean
+    ObtenerConfiguracionGeneralUseCase obtenerConfiguracionGeneralUseCase(
+            ConfiguracionGeneralRepositoryPort configuracionGeneralRepositoryPort
+    ) {
+        return new ObtenerConfiguracionGeneralService(configuracionGeneralRepositoryPort);
+    }
+
+    @Bean
+    ActualizarConfiguracionGeneralUseCase actualizarConfiguracionGeneralUseCase(
+            ConfiguracionGeneralRepositoryPort configuracionGeneralRepositoryPort,
+            UsuarioAdministrablePort usuarioAdministrablePort
+    ) {
+        return new ActualizarConfiguracionGeneralService(
+                configuracionGeneralRepositoryPort,
+                usuarioAdministrablePort
+        );
+    }
+
+    @Bean
+    AplicarMedidaAdministrativaUsuarioUseCase aplicarMedidaAdministrativaUsuarioUseCase(
+            MedidaAdministrativaUsuarioRepositoryPort medidaAdministrativaUsuarioRepositoryPort,
+            UsuarioAdministrablePort usuarioAdministrablePort
+    ) {
+        return new AplicarMedidaAdministrativaUsuarioService(
+                medidaAdministrativaUsuarioRepositoryPort,
+                usuarioAdministrablePort
+        );
+    }
+
+    @Bean
+    ObtenerMedidasAdministrativasDeUsuarioUseCase obtenerMedidasAdministrativasDeUsuarioUseCase(
+            MedidaAdministrativaUsuarioRepositoryPort medidaAdministrativaUsuarioRepositoryPort
+    ) {
+        return new ObtenerMedidasAdministrativasDeUsuarioService(medidaAdministrativaUsuarioRepositoryPort);
+    }
+}
